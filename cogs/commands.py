@@ -14,7 +14,6 @@ class Commands(commands.Cog):
         self.bot = bot
 
     # Check status
-    
     @discord.app_commands.command(
         name="check-status",
         description="Pings the minecraft server to check the status."
@@ -26,6 +25,25 @@ class Commands(commands.Cog):
             status = await asyncio.to_thread(minecraftServer.status)
             await interaction.followup.send(
                 f"Server is online! ({round(status.latency)} ms)"
+            )
+
+        except (TimeoutError, OSError):
+            await interaction.followup.send(
+                "Server is offline or unreachable."
+            )
+
+    # Check Minecraft version
+    @discord.app_commands.command(
+        name="check-version",
+        description="Shows the version of minecraft the server is running on."
+    )
+    async def checkStatus(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        try:
+            status = await asyncio.to_thread(minecraftServer.status)
+            await interaction.followup.send(
+                f"The server is using Minecraft version {status.version.name}."
             )
 
         except (TimeoutError, OSError):

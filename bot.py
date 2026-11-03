@@ -31,7 +31,6 @@ bot = MyBot(command_prefix="", intents=intents)
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
