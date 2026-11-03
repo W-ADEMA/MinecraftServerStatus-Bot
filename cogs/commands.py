@@ -4,21 +4,37 @@ from discord.ext import commands
 from mcstatus import JavaServer
 import os
 
-SERVER_IP = os.getenv("MINECRAFT_SERVER_IP")
+# Get server
 
-minecraftServer = JavaServer(SERVER_IP, 21289, timeout=10)
+SERVER_IP = os.getenv("MINECRAFT_SERVER_IP")
+if not SERVER_IP:
+    raise RuntimeError("DISCORD_GUILD_ID is missing from your .env file")
+
+minecraftServer = JavaServer.lookup(SERVER_IP)
+
+# Commands
 
 class Commands(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
+    # Server IP
+    @discord.app_commands.command(
+        name="ip",
+        description="Shows the IP adress of the minecraft server."
+    )
+    async def getIP(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+                f"The server is using Minecraft version: {SERVER_IP}."
+        )
+
     # Check status
     @discord.app_commands.command(
-        name="check-status",
+        name="status",
         description="Pings the minecraft server to check the status."
     )
-    async def checkStatus(self, interaction: discord.Interaction):
+    async def getStatus(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         try:
@@ -34,16 +50,16 @@ class Commands(commands.Cog):
 
     # Check Minecraft version
     @discord.app_commands.command(
-        name="check-version",
+        name="version",
         description="Shows the version of minecraft the server is running on."
     )
-    async def checkStatus(self, interaction: discord.Interaction):
+    async def getVersion(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         try:
             status = await asyncio.to_thread(minecraftServer.status)
             await interaction.followup.send(
-                f"The server is using Minecraft version {status.version.name}."
+                f"The server is using Minecraft version: {status.version.name}."
             )
 
         except (TimeoutError, OSError):
