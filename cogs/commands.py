@@ -22,17 +22,17 @@ class Commands(commands.Cog):
     # Server IP
     @discord.app_commands.command(
         name="ip",
-        description="Shows the IP adress of the minecraft server."
+        description="Shows the IP adress of the minecraft server"
     )
     async def getIP(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-                f"The server is using Minecraft version: {SERVER_IP}."
+                f"The IP of the minecraft server is: {SERVER_IP}"
         )
 
     # Check status
     @discord.app_commands.command(
         name="status",
-        description="Pings the minecraft server to check the status."
+        description="Pings the minecraft server to check the status"
     )
     async def getStatus(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -45,7 +45,7 @@ class Commands(commands.Cog):
 
         except (TimeoutError, OSError):
             await interaction.followup.send(
-                "Server is offline or unreachable."
+                "Server is offline or unreachable"
             )
 
     # Check Minecraft version
@@ -59,12 +59,12 @@ class Commands(commands.Cog):
         try:
             status = await asyncio.to_thread(minecraftServer.status)
             await interaction.followup.send(
-                f"The server is using Minecraft version: {status.version.name}."
+                f"The server is using Minecraft version: {status.version.name}"
             )
 
         except (TimeoutError, OSError):
             await interaction.followup.send(
-                "Server is offline or unreachable."
+                "Server is offline or unreachable"
             )
 
 async def setup(bot):
