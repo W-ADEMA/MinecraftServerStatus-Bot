@@ -15,6 +15,10 @@ GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 if not GUILD_ID:
     raise RuntimeError("DISCORD_GUILD_ID is missing from your .env file")
 
+SERVER_IP = os.getenv("MINECRAFT_SERVER_IP")
+if not SERVER_IP:
+    raise RuntimeError("DISCORD_GUILD_ID is missing from your .env file")
+
 # Initialize bot
 
 class MyBot(commands.Bot):

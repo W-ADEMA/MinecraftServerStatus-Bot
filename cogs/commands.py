@@ -7,8 +7,6 @@ import os
 # Get server
 
 SERVER_IP = os.getenv("MINECRAFT_SERVER_IP")
-if not SERVER_IP:
-    raise RuntimeError("DISCORD_GUILD_ID is missing from your .env file")
 
 minecraftServer = JavaServer.lookup(SERVER_IP)
 
@@ -51,7 +49,7 @@ class Commands(commands.Cog):
     # Check Minecraft version
     @discord.app_commands.command(
         name="version",
-        description="Shows the version of minecraft the server is running on."
+        description="Shows the version of minecraft the server is running on"
     )
     async def getVersion(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -60,6 +58,40 @@ class Commands(commands.Cog):
             status = await asyncio.to_thread(minecraftServer.status)
             await interaction.followup.send(
                 f"The server is using Minecraft version: {status.version.name}"
+            )
+
+        except (TimeoutError, OSError):
+            await interaction.followup.send(
+                "Server is offline or unreachable"
+            )
+
+    # playerlist
+    @discord.app_commands.command(
+        name="playerlist",
+        description="Shows a list of the players online"
+    )
+    async def getPlayerlist(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        try:
+            status = await asyncio.to_thread(minecraftServer.status)
+            players = status.players.sample
+
+            if players:
+                playerListOutput = (
+                    "**Players online:**\n" +
+                    "\n".join(discord.utils.escape_markdown(player.name) for player in players)
+                )
+            else:
+                if status.players.online > 0:
+                    playerListOutput = "Server does not expose playerlist"
+                else:
+                    playerListOutput = "No players online"
+
+            await interaction.followup.send(
+                f"Players: `{status.players.online}/{status.players.max}`\n"
+                "\n"
+                f"{playerListOutput}"
             )
 
         except (TimeoutError, OSError):
