@@ -7,6 +7,13 @@ A Discord bot that displays the status of a Minecraft (Java Edition) server.
 - **Slash commands** that can be used to get info about the server
 - **Live player list channel** (optional): a single message that is edited every minute with the current player count and names
 
+## Requirements
+ 
+- Python 3.13 or newer
+- Dependencies (see `requirements.txt`)
+- A Discord bot application and token
+- A Minecraft **Java Edition** server
+
 ## Setup
  
 Create a `.env` file in the project root:
@@ -34,10 +41,3 @@ If `DISCORD_CHANNEL_ID` is set, the bot posts one message in that channel and ed
 | `/status`     | Pings the server and reports whether it is online   |
 | `/version`    | Shows the Minecraft version the server is running                 |
 | `/playerlist` | Shows the number of players online and their names                |
-
-## Requirements
- 
-- Python 3.13 or newer
-- Dependencies (see `requirements.txt`)
-- A Discord bot application and token
-- A Minecraft **Java Edition** server
