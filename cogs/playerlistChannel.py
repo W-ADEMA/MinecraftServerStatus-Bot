@@ -26,59 +26,62 @@ class Monitor(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def channelUpdater(self):
-        discordChannel = await self.bot.fetch_channel(CHANNEL_ID)
-
-        # Creates playerlist
         try:
-            minecraftServer = JavaServer.lookup(SERVER_IP)
-            status = await asyncio.to_thread(minecraftServer.status)
-            players = status.players.sample
-            offlineSince = None
+            discordChannel = await self.bot.fetch_channel(CHANNEL_ID)
 
-            if players:
-                playerListOutput = (
-                    "**Players online:**\n" +
-                    "\n".join(discord.utils.escape_markdown(player.name) for player in players)
-                )
-            else:
-                if status.players.online > 0:
-                    playerListOutput = "Server does not expose playerlist"
-                else:
-                    playerListOutput = "No players online"
-
-            messageContent = (
-                f"Players: `{status.players.online}/{status.players.max}`\n"
-                "\n"
-                f"{playerListOutput}\n"
-                f"-# Updated <t:{int(time.time())}:R>"
-            )
-
-        except (TimeoutError, OSError):
-            if self.offlineSince is None:
-                offlineSince = int(time.time())
-
-                messageContent = (
-                    "Server is offline or unreachable\n"
-                    f"-# Detected <t:{offlineSince}:R>"
-                )
-            else:
-                offlineSince = self.offlineSince
-
-                messageContent = (
-                    "Server is offline or unreachable\n"
-                    f"-# Detected <t:{self.offlineSince}:R> and updated <t:{int(time.time())}:R>"
-                )
-
-        # Checks if message can be edited or needs to be sent
-        if self.status_message is None:
-            self.status_message = await discordChannel.send(messageContent)
-        else:
+            # Creates playerlist
             try:
-                await self.status_message.edit(content=messageContent)
-            except discord.NotFound:
-                self.status_message = await discordChannel.send(messageContent)
+                minecraftServer = JavaServer.lookup(SERVER_IP)
+                status = await asyncio.to_thread(minecraftServer.status)
+                players = status.players.sample
+                offlineSince = None
 
-        self.offlineSince = offlineSince
+                if players:
+                    playerListOutput = (
+                        "**Players online:**\n" +
+                        "\n".join(discord.utils.escape_markdown(player.name) for player in players)
+                    )
+                else:
+                    if status.players.online > 0:
+                        playerListOutput = "Server does not expose playerlist"
+                    else:
+                        playerListOutput = "No players online"
+
+                messageContent = (
+                    f"Players: `{status.players.online}/{status.players.max}`\n"
+                    "\n"
+                    f"{playerListOutput}\n"
+                    f"-# Updated <t:{int(time.time())}:R>"
+                )
+
+            except (TimeoutError, OSError):
+                if self.offlineSince is None:
+                    offlineSince = int(time.time())
+
+                    messageContent = (
+                        "Server is offline or unreachable\n"
+                        f"-# Detected <t:{offlineSince}:R>"
+                    )
+                else:
+                    offlineSince = self.offlineSince
+
+                    messageContent = (
+                        "Server is offline or unreachable\n"
+                        f"-# Detected <t:{self.offlineSince}:R> and updated <t:{int(time.time())}:R>"
+                    )
+
+            # Checks if message can be edited or needs to be sent
+            if self.status_message is None:
+                self.status_message = await discordChannel.send(messageContent)
+            else:
+                try:
+                    await self.status_message.edit(content=messageContent)
+                except discord.NotFound:
+                    self.status_message = await discordChannel.send(messageContent)
+
+            self.offlineSince = offlineSince
+        except Exception as e:
+            print(e)
 
     @channelUpdater.before_loop
     async def before_channelUpdater(self):
