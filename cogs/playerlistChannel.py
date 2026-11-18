@@ -24,7 +24,7 @@ class Monitor(commands.Cog):
     def cog_unload(self):
         self.channelUpdater.cancel()
 
-    @tasks.loop(seconds=20)
+    @tasks.loop(minutes=1)
     async def channelUpdater(self):
         discordChannel = await self.bot.fetch_channel(CHANNEL_ID)
 
