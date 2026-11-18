@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from mcstatus import JavaServer
 from dotenv import load_dotenv
 import asyncio
+import time
 
 load_dotenv()
 
@@ -14,14 +15,17 @@ class Monitor(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+        self.offlineSince = None
+
         self.status_message = None
-        self.my_task.start()
+        self.channelUpdater.start()
 
     def cog_unload(self):
-        self.my_task.cancel()
+        self.channelUpdater.cancel()
 
-    @tasks.loop(minutes=1)
-    async def my_task(self):
+    @tasks.loop(seconds=20)
+    async def channelUpdater(self):
         discordChannel = await self.bot.fetch_channel(CHANNEL_ID)
 
         # Creates playerlist
@@ -29,6 +33,7 @@ class Monitor(commands.Cog):
             minecraftServer = JavaServer.lookup(SERVER_IP)
             status = await asyncio.to_thread(minecraftServer.status)
             players = status.players.sample
+            offlineSince = None
 
             if players:
                 playerListOutput = (
@@ -44,13 +49,25 @@ class Monitor(commands.Cog):
             messageContent = (
                 f"Players: `{status.players.online}/{status.players.max}`\n"
                 "\n"
-                f"{playerListOutput}"
+                f"{playerListOutput}\n"
+                f"-# Updated <t:{int(time.time())}:R>"
             )
 
         except (TimeoutError, OSError):
-            messageContent = (
-                "Server is offline or unreachable"
-            )
+            if self.offlineSince is None:
+                offlineSince = int(time.time())
+
+                messageContent = (
+                    "Server is offline or unreachable\n"
+                    f"-# Detected <t:{offlineSince}:R>"
+                )
+            else:
+                offlineSince = self.offlineSince
+
+                messageContent = (
+                    "Server is offline or unreachable\n"
+                    f"-# Detected <t:{self.offlineSince}:R> and updated <t:{int(time.time())}:R>"
+                )
 
         # Checks if message can be edited or needs to be sent
         if self.status_message is None:
@@ -61,8 +78,10 @@ class Monitor(commands.Cog):
             except discord.NotFound:
                 self.status_message = await discordChannel.send(messageContent)
 
-    @my_task.before_loop
-    async def before_my_task(self):
+        self.offlineSince = offlineSince
+
+    @channelUpdater.before_loop
+    async def before_channelUpdater(self):
         await self.bot.wait_until_ready()
 
         # Delete old playerlist(s)
